@@ -4,14 +4,17 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	log "golang.org/x/exp/slog"
 	"io"
-	"log"
 	"os"
 )
 
 const outputFile = "merged.csv"
 
-func main() {
+type Merger struct {
+}
+
+func (m *Merger) Merge() {
 	w := DeleteAndCreateFile(outputFile)
 	defer closeFile(w)
 
@@ -21,16 +24,15 @@ func main() {
 
 // AppendCSVFiles appends the files in the array to the outputFile (writer)
 func AppendCSVFiles(w *csv.Writer, files []string) {
-	fmt.Println("input files:", files)
-
+	log.Debug("input files", "files", files)
 	for i := 0; i < len(files); i++ {
-		fmt.Printf("%v <- %s\n", outputFile, files[i])
 		src := openFile(files[i])
 		csvSrc := csv.NewReader(src)
 
 		copyTo(csvSrc, w)
 		closeFile(src)
 		w.Flush()
+		fmt.Printf("%v <- %s\n", outputFile, files[i])
 	}
 }
 
@@ -41,14 +43,14 @@ func DeleteAndCreateFile(f string) *os.File {
 		// path does not exist
 		err := os.Remove(f)
 		if err != nil {
-			log.Panic(err)
+			LogPanic("Unable to delete output file.", err, "file", f)
 		}
 	}
 
 	// create a file writer
 	w, e := os.Create(f)
 	if e != nil {
-		log.Panic("\nUnable to create output File: ", e)
+		LogPanic("Unable to create output file.", e, "file", f)
 	}
 
 	return w
@@ -57,7 +59,7 @@ func DeleteAndCreateFile(f string) *os.File {
 func closeFile(src *os.File) {
 	err := src.Close()
 	if err != nil {
-		log.Panic(err)
+		LogPanic("Unable to open file.", err)
 	}
 }
 
@@ -65,7 +67,7 @@ func openFile(file string) *os.File {
 	// open the file
 	f, e := os.Open(file)
 	if e != nil {
-		log.Panic("\nUnable to open file: ", e)
+		LogPanic("Unable to open file.", e, "file", file)
 	}
 
 	return f
@@ -76,7 +78,7 @@ func readline(r *csv.Reader) ([]string, bool) {
 		if e == io.EOF {
 			return nil, false
 		}
-		log.Panic("\nError reading file: ", e)
+		LogPanic("Error reading file.", e, "file", r)
 	}
 	return line, true
 }
@@ -84,7 +86,7 @@ func readline(r *csv.Reader) ([]string, bool) {
 func writeLine(w *csv.Writer, line []string) {
 	e := w.Write(line)
 	if e != nil {
-		log.Panic("\nError writing file: ", e)
+		LogPanic("Error writing file.", e, "file", w)
 	}
 }
 
@@ -92,4 +94,15 @@ func copyTo(r *csv.Reader, w *csv.Writer) {
 	for line, b := readline(r); b; line, b = readline(r) {
 		writeLine(w, line)
 	}
+}
+
+// LogPanic logs to ERROR (would prefer to log as FATAL, but I'm not going to
+// create custom levels to do it) and panics. It is a necessary convenience
+// method that is here in absence of a log.Panic in golang.org/x/exp/slog. It's
+// not ideal.
+func LogPanic(msg string, err error, args ...any) {
+	//os.Setenv("LOG_SOURCE", "1")
+	args = append(args, log.Any("level", "FATAL"))
+	log.Error(msg, err, args...)
+	panic(fmt.Sprintf("\n%v", err))
 }
