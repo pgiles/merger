@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -75,6 +75,7 @@ func writeToLogFile() *os.File {
 		if err != nil {
 			panic(fmt.Sprintf("Error]: %s", err))
 		}
+		slog.Info(fmt.Sprintf("Logging to %v", filename))
 		return f
 	}
 

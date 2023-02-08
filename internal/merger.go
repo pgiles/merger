@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"encoding/csv"
@@ -12,18 +12,23 @@ import (
 const outputFile = "merged.csv"
 
 type Merger struct {
+	OutputFileName string
 }
 
-func (m *Merger) Merge() {
-	w := DeleteAndCreateFile(outputFile)
+func (m *Merger) Merge(filenames []string, outputFilename *string) {
+	m.OutputFileName = outputFile
+	if outputFilename != nil {
+		m.OutputFileName = *outputFilename
+	}
+	w := DeleteAndCreateFile(m.OutputFileName)
 	defer closeFile(w)
 
 	cw := csv.NewWriter(w)
-	AppendCSVFiles(cw, os.Args[1:])
+	m.AppendCSVFiles(cw, filenames)
 }
 
 // AppendCSVFiles appends the files in the array to the outputFile (writer)
-func AppendCSVFiles(w *csv.Writer, files []string) {
+func (m *Merger) AppendCSVFiles(w *csv.Writer, files []string) {
 	log.Debug("input files", "files", files)
 	for i := 0; i < len(files); i++ {
 		src := openFile(files[i])
@@ -32,7 +37,7 @@ func AppendCSVFiles(w *csv.Writer, files []string) {
 		copyTo(csvSrc, w)
 		closeFile(src)
 		w.Flush()
-		fmt.Printf("%v <- %s\n", outputFile, files[i])
+		fmt.Printf("%v <- %s\n", m.OutputFileName, files[i])
 	}
 }
 

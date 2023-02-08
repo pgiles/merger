@@ -19,18 +19,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/pgiles/merger/internal"
 	"github.com/spf13/cobra"
 )
 
 // csvCmd represents the csv command
 var csvCmd = &cobra.Command{
 	Use:   "csv",
-	Short: "A brief description of your command",
+	Args:  cobra.MinimumNArgs(1),
+	Short: "Combine CSV files",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -38,7 +39,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("csv called")
+		new(internal.Merger).Merge(args, nil)
 	},
 }
 
