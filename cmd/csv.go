@@ -40,6 +40,8 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		new(internal.Merger).Merge(args, nil)
+		//TODO use flag or other command and pretty-print this result
+		cmd.Println(internal.ShowHeaders(args))
 	},
 }
 

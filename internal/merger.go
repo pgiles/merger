@@ -61,6 +61,15 @@ func DeleteAndCreateFile(f string) *os.File {
 	return w
 }
 
+func ShowHeaders(files []string) [][]string {
+	var r = make([][]string, len(files))
+	for i, f := range files {
+		line, _ := readline(csv.NewReader(openFile(f)))
+		r[i] = line
+	}
+	return r
+}
+
 func closeFile(src *os.File) {
 	err := src.Close()
 	if err != nil {
