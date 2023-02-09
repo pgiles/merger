@@ -37,12 +37,12 @@ var csvCmd = &cobra.Command{
 Each file's contents (all rows, including headers) will be appended to 
 the file passed before it resulting in a single CVS file named merged.csv
 that contains the data from all files.`,
+	Example: "csv some/path/file.csv /a/file/to/append/append-me.csv",
 	Run: func(cmd *cobra.Command, args []string) {
 		new(internal.Merger).Merge(args, nil)
 		//TODO use flag or other command and pretty-print this result
 		//cmd.Println(internal.ShowHeaders(args))
 	},
-	Example: "csv some/path/file.csv /a/file/to/append/append-me.csv",
 }
 
 func init() {
