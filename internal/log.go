@@ -81,3 +81,14 @@ func writeToLogFile() *os.File {
 
 	return nil
 }
+
+// LogPanic logs to ERROR (would prefer to log as FATAL, but I'm not going to
+// create custom levels to do it) and panics. It is a necessary convenience
+// method that is here in absence of a log.Panic in golang.org/x/exp/slog. It's
+// not ideal.
+func LogPanic(msg string, err error, args ...any) {
+	//os.Setenv("LOG_SOURCE", "1")
+	args = append(args, slog.Any("level", "FATAL"))
+	slog.Error(msg, err, args...)
+	panic(fmt.Sprintf("\n%v", err))
+}

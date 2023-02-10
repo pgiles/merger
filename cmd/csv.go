@@ -41,7 +41,8 @@ that contains the data from all files.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		//TODO:use flag or other command to pick the desired function (Merge or CombineCSVFiles)
 		//new(internal.Merger).Merge(args, nil)
-		new(internal.Merger).CombineCSVFiles(args, []string{"ssn"}, nil)
+		headers := []string{"first_name", "Field", "ssn", "Transaction Date", "Category", "Amount", "Type"}
+		new(internal.Merger).CombineCSVFiles(args, headers, nil)
 		//TODO use flag or other command and pretty-print this result
 		//cmd.Println(internal.ShowHeaders(args))
 	},

@@ -31,24 +31,29 @@ func (m *Merger) CombineCSVFiles(filenames []string, cols []string, outputFilena
 	m.combine(cw, filenames, cols)
 }
 
-func (m *Merger) combine(w *csv.Writer, files []string, cols []string) {
+func (m *Merger) combine(w *csv.Writer, files []string, columns []string) {
 	//first try at this will be a naive impl:
 	// 1. read in records of each input file, write columns with matching headers; load everything into memory
-	log.Debug("cols to keep", cols)
+	log.Debug("columns to keep", "columns", columns)
 	for _, f := range files {
 		reader := csv.NewReader(openFile(f))
 		records, _ := reader.ReadAll()
-		filteredRecords := make([][]string, len(records))
+		rows := make([][]string, len(records))
+		indexes := ColumnIndexes(records[0], columns)
 		for i := 0; i < len(records); i++ {
-			cols := []string{records[i][0], records[i][2]}
-			filteredRecords[i] = append(filteredRecords[i], cols...)
+			var cols []string
+			for _, col := range indexes {
+				cols = append(cols, records[i][col]) //the columns we are using in the output file
+			}
+			rows[i] = append(rows[i], cols...) //the rows for this file
 		}
 
-		err := w.WriteAll(filteredRecords)
+		err := w.WriteAll(rows)
 		if err != nil {
 			LogPanic("", err)
 		}
 		w.Flush()
+		fmt.Printf("%v <- %s\n", m.OutputFileName, f)
 	}
 }
 
@@ -84,15 +89,6 @@ func DeleteAndCreateFile(f string) *os.File {
 	}
 
 	return w
-}
-
-func ShowHeaders(files []string) [][]string {
-	var r = make([][]string, len(files))
-	for i, f := range files {
-		line, _ := readline(csv.NewReader(openFile(f)))
-		r[i] = line
-	}
-	return r
 }
 
 func outputFile(m *Merger, outputFilename *string) *os.File {
@@ -142,15 +138,4 @@ func copyTo(r *csv.Reader, w *csv.Writer) {
 	for line, b := readline(r); b; line, b = readline(r) {
 		writeLine(w, line)
 	}
-}
-
-// LogPanic logs to ERROR (would prefer to log as FATAL, but I'm not going to
-// create custom levels to do it) and panics. It is a necessary convenience
-// method that is here in absence of a log.Panic in golang.org/x/exp/slog. It's
-// not ideal.
-func LogPanic(msg string, err error, args ...any) {
-	//os.Setenv("LOG_SOURCE", "1")
-	args = append(args, log.Any("level", "FATAL"))
-	log.Error(msg, err, args...)
-	panic(fmt.Sprintf("\n%v", err))
 }
