@@ -9,25 +9,50 @@ import (
 	"os"
 )
 
-const outputFile = "merged.csv"
+const defaultOutputFile = "merged.csv"
 
 type Merger struct {
 	OutputFileName string
 }
 
 func (m *Merger) Merge(filenames []string, outputFilename *string) {
-	m.OutputFileName = outputFile
-	if outputFilename != nil {
-		m.OutputFileName = *outputFilename
-	}
-	w := DeleteAndCreateFile(m.OutputFileName)
-	defer closeFile(w)
+	f := outputFile(m, outputFilename)
+	defer closeFile(f)
 
-	cw := csv.NewWriter(w)
+	cw := csv.NewWriter(f)
 	m.AppendCSVFiles(cw, filenames)
 }
 
-// AppendCSVFiles appends the files in the array to the outputFile (writer)
+func (m *Merger) CombineCSVFiles(filenames []string, cols []string, outputFilename *string) {
+	f := outputFile(m, outputFilename)
+	defer closeFile(f)
+
+	cw := csv.NewWriter(f)
+	m.combine(cw, filenames, cols)
+}
+
+func (m *Merger) combine(w *csv.Writer, files []string, cols []string) {
+	//first try at this will be a naive impl:
+	// 1. read in records of each input file, write columns with matching headers; load everything into memory
+	log.Debug("cols to keep", cols)
+	for _, f := range files {
+		reader := csv.NewReader(openFile(f))
+		records, _ := reader.ReadAll()
+		filteredRecords := make([][]string, len(records))
+		for i := 0; i < len(records); i++ {
+			cols := []string{records[i][0], records[i][2]}
+			filteredRecords[i] = append(filteredRecords[i], cols...)
+		}
+
+		err := w.WriteAll(filteredRecords)
+		if err != nil {
+			LogPanic("", err)
+		}
+		w.Flush()
+	}
+}
+
+// AppendCSVFiles appends the files in the array to the output file (writer)
 func (m *Merger) AppendCSVFiles(w *csv.Writer, files []string) {
 	log.Debug("input files", "files", files)
 	for i := 0; i < len(files); i++ {
@@ -68,6 +93,15 @@ func ShowHeaders(files []string) [][]string {
 		r[i] = line
 	}
 	return r
+}
+
+func outputFile(m *Merger, outputFilename *string) *os.File {
+	m.OutputFileName = defaultOutputFile
+	if outputFilename != nil {
+		m.OutputFileName = *outputFilename
+	}
+
+	return DeleteAndCreateFile(m.OutputFileName)
 }
 
 func closeFile(src *os.File) {

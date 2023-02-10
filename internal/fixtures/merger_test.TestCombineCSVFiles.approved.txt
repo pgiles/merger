@@ -1,0 +1,8 @@
+first_name,ssn
+John,123456
+Kathy,687987
+Bob,3979870
+Transaction Date,Category
+20221231,Merchandise
+20230115,Grocery
+20230131,Dining

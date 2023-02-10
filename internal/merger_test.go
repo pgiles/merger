@@ -1,11 +1,31 @@
 package internal
 
 import (
+	"bytes"
+	"encoding/csv"
 	"fmt"
 	"testing"
+
+	approvals "github.com/approvals/go-approval-tests"
 )
 
 // Tests with E2E (End-to-End) prefix are not executed by "go test" for hopefully obvious reasons.
+
+func init() {
+	approvals.UseFolder("fixtures")
+}
+
+func TestCombineCSVFiles(t *testing.T) {
+	m := new(Merger)
+	files := []string{"../cmd/fixtures/test.csv", "../cmd/fixtures/transactions.csv"}
+	headers := []string{"first_name", "ssn", "Transaction Date", "Category", "Amount"}
+	w := bytes.NewBufferString("")
+	m.combine(csv.NewWriter(w), files, headers)
+	//fmt.Print(w)
+
+	approvals.VerifyString(t, w.String())
+}
+
 func TestShowHeaders(t *testing.T) {
 	//[[Date Category Amount] [first_name last_name ssn]]
 	var tests = []struct {
@@ -15,7 +35,7 @@ func TestShowHeaders(t *testing.T) {
 		{
 			[]string{"../cmd/fixtures/transactions.csv", "../cmd/fixtures/test_info.csv"},
 			[][]string{
-				[]string{"Date", "Category", "Amount"},
+				[]string{"Transaction Date", "Post Date", "Category", "Amount"},
 				[]string{"Field", "Type", "Null", "Key", "Default", "Extra"},
 			},
 		},
