@@ -23,8 +23,12 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"bufio"
+	"fmt"
 	"github.com/pgiles/merger/internal"
 	"github.com/spf13/cobra"
+	"os"
+	"strconv"
 )
 
 // csvCmd represents the csv command
@@ -36,13 +40,83 @@ var csvCmd = &cobra.Command{
 
 Each file's contents (all rows, including headers) will be appended to 
 the file passed before it resulting in a single CVS file named merged.csv
-that contains the data from all files.`,
+that contains the data from all files.
+
+You can select the columns you'd like to use in the final (merged) result 
+by using the interactive mode.
+`,
+
 	Example: "csv some/path/file.csv /a/file/to/append/append-me.csv",
 	Run: func(cmd *cobra.Command, args []string) {
+		if b, _ := cmd.Flags().GetBool("plan"); b == true {
+			headers := internal.ShowHeaders(args)
+			cmd.Println(prettyPrint(headers))
+			return
+		} else if b, _ := cmd.Flags().GetBool("interactive"); b == true {
+			headers := internal.ShowHeaders(args)
+			cmd.Println(prettyPrint(headers))
+			selected := captureInteractiveInput()
+
+			cols := matchSelected(headers, selected)
+			// TODO have backend spit out a config.csv along with combined result
+			cmd.Println("Call CombineCSVFiles", cols)
+			// TODO remove redundant return after calling CombineCSVFiles
+			return
+		}
 		new(internal.Merger).Merge(args, nil)
-		//TODO use flag or other command and pretty-print this result
-		//cmd.Println(internal.ShowHeaders(args))
 	},
+}
+
+func matchSelected(headers [][]string, selected []string) []string {
+	var tmpArr []string
+	// Convert 2D array of each file's headers into a single array since that
+	// is how the input is presented (numbered)
+	for i := 0; i < len(headers); i++ {
+		for _, header := range headers[i] {
+			tmpArr = append(tmpArr, header)
+		}
+	}
+
+	var arr []string
+	for _, x := range selected {
+		var idx, _ = strconv.Atoi(x)
+		arr = append(arr, tmpArr[idx])
+	}
+	return arr
+}
+func prettyPrint(headers [][]string) string {
+	var s string
+	c := 0
+	for i := 0; i < len(headers); i++ {
+		for _, header := range headers[i] {
+			s += fmt.Sprintf("[%d]:'%s' ", c, header)
+			c++
+		}
+		s += "\n"
+	}
+	return s
+}
+func captureInteractiveInput() []string {
+	// To create dynamic array
+	arr := make([]string, 0)
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Println("Press RETURN when finished.")
+	for {
+		fmt.Print("Enter Text: ")
+		// Scans a line from Stdin(Console)
+		scanner.Scan()
+		// Holds the string that scanned
+		text := scanner.Text()
+		if len(text) != 0 {
+			fmt.Println(text)
+			arr = append(arr, text)
+		} else {
+			break
+		}
+
+	}
+	// Use collected inputs
+	return arr
 }
 
 func init() {
@@ -56,5 +130,8 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// csvCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	csvCmd.Flags().BoolP("plan", "p", false, "Show the headers for each input file")
+	csvCmd.Flags().BoolP("interactive", "i", false, "Pick your columns interactively and store as config for future runs")
+	// TODO implement merge using a config file
+	csvCmd.Flags().StringP("config", "c", "", "Use a set of headers configured from a previous run")
 }
