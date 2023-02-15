@@ -49,11 +49,11 @@ by using the interactive mode.
 	Example: "csv some/path/file.csv /a/file/to/append/append-me.csv",
 	Run: func(cmd *cobra.Command, args []string) {
 		if b, _ := cmd.Flags().GetBool("plan"); b == true {
-			headers := internal.ShowHeaders(args)
+			headers := internal.Headers(args)
 			cmd.Println(prettyPrint(headers))
 			return
 		} else if b, _ := cmd.Flags().GetBool("interactive"); b == true {
-			headers := internal.ShowHeaders(args)
+			headers := internal.Headers(args)
 			cmd.Println(prettyPrint(headers))
 			selected := captureInteractiveInput()
 
