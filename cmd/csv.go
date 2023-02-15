@@ -59,9 +59,7 @@ by using the interactive mode.
 
 			cols := matchSelected(headers, selected)
 			// TODO have backend spit out a config.csv along with combined result
-			cmd.Println("Call CombineCSVFiles", cols)
-			// TODO remove redundant return after calling CombineCSVFiles
-			return
+			new(internal.Merger).CombineCSVFiles(args, cols, nil)
 		}
 		new(internal.Merger).Merge(args, nil)
 	},
