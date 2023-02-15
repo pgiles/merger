@@ -1,4 +1,4 @@
-Date,Category,Amount
-2022,Merchandise,12.36
-2023,Grocery,68.77
-2023,Dining,39.98
+Transaction Date,Post Date,Category,Amount
+20221231,2022,Merchandise,12.36
+20230115,2023,Grocery,68.77
+20230131,2023,Dining,39.98
