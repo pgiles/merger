@@ -29,6 +29,7 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // csvCmd represents the csv command
@@ -36,7 +37,7 @@ var csvCmd = &cobra.Command{
 	Use:   "csv",
 	Args:  cobra.MinimumNArgs(1),
 	Short: "Combine CSV files",
-	Long: `Pass file paths as arguments. 
+	Long: `Pass file paths or directories as arguments. 
 
 Each file's contents (all rows, including headers) will be appended to 
 the file passed before it resulting in a single CVS file named merged.csv
@@ -46,26 +47,55 @@ You can select the columns you'd like to use in the final (merged) result
 by using the interactive mode.
 `,
 
-	Example: "csv some/path/file.csv /a/file/to/append/append-me.csv",
+	Example: "csv some/path/file.csv /a/file/to/append/append-me.csv\ncsv . -i",
 	Run: func(cmd *cobra.Command, args []string) {
+		files, err := Files(args)
+		if err != nil {
+			cmd.PrintErr(err)
+			return
+		}
+
 		if b, _ := cmd.Flags().GetBool("plan"); b == true {
-			headers := internal.Headers(args)
+			headers := internal.Headers(files)
 			cmd.Println(prettyPrint(headers))
 			return
 		} else if b, _ := cmd.Flags().GetBool("interactive"); b == true {
-			headers := internal.Headers(args)
+			headers := internal.Headers(files)
 			cmd.Println(prettyPrint(headers))
 			selected := captureInteractiveInput()
 
 			cols := matchSelected(headers, selected)
 			// TODO have backend spit out a config.csv along with combined result
-			new(internal.Merger).CombineCSVFiles(args, cols, nil)
+			new(internal.Merger).CombineCSVFiles(files, cols, nil)
 			return
 		}
-		new(internal.Merger).Merge(args, nil)
+		new(internal.Merger).Merge(files, nil)
 	},
 }
 
+func Files(args []string) ([]string, error) {
+	var fileList []string
+
+	for _, a := range args {
+		if fi, _ := os.Stat(a); fi.IsDir() {
+			files, err := os.ReadDir(a)
+			if err != nil {
+				return nil, err
+			}
+			for _, f := range files {
+				if strings.HasSuffix(f.Name(), ".csv") {
+					fileList = append(fileList, strings.Join([]string{a, f.Name()}, "/"))
+				}
+			}
+		} else {
+			if strings.HasSuffix(a, ".csv") {
+				fileList = append(fileList, a)
+			}
+		}
+	}
+
+	return fileList, nil
+}
 func matchSelected(headers [][]string, selected []string) []string {
 	var tmpArr []string
 	// Convert 2D array of each file's headers into a single array since that

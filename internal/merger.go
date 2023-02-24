@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-const defaultOutputFile = "merged.csv"
+const DefaultOutputFile = "merged.csv"
 
 type Merger struct {
 	OutputFileName string
@@ -92,7 +92,7 @@ func DeleteAndCreateFile(f string) *os.File {
 }
 
 func outputFile(m *Merger, outputFilename *string) *os.File {
-	m.OutputFileName = defaultOutputFile
+	m.OutputFileName = DefaultOutputFile
 	if outputFilename != nil {
 		m.OutputFileName = *outputFilename
 	}
