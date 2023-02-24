@@ -17,7 +17,7 @@ func init() {
 func TestCombine(t *testing.T) {
 	m := new(Merger)
 	files := []string{"../cmd/fixtures/test.csv", "../cmd/fixtures/transactions.csv"}
-	headers := []string{"first_name", "ssn", "Transaction Date", "Category", "Amount"}
+	headers := []string{"first_name", "ssn", "Transaction Date", "Category", "Amount", "Amount", "ssn"}
 	w := bytes.NewBufferString("")
 	m.combine(csv.NewWriter(w), files, headers)
 	//fmt.Print(w)
