@@ -37,7 +37,7 @@ var csvCmd = &cobra.Command{
 	Use:   "csv",
 	Args:  cobra.MinimumNArgs(1),
 	Short: "Combine CSV files",
-	Long: `Pass file paths as arguments. 
+	Long: `Pass file paths or directories as arguments. 
 
 Each file's contents (all rows, including headers) will be appended to 
 the file passed before it resulting in a single CVS file named merged.csv
@@ -47,7 +47,7 @@ You can select the columns you'd like to use in the final (merged) result
 by using the interactive mode.
 `,
 
-	Example: "csv some/path/file.csv /a/file/to/append/append-me.csv",
+	Example: "csv some/path/file.csv /a/file/to/append/append-me.csv\ncsv . -i",
 	Run: func(cmd *cobra.Command, args []string) {
 		files, err := Files(args)
 		if err != nil {
