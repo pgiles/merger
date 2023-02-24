@@ -14,17 +14,20 @@ func Headers(files []string) [][]string {
 // ColumnIndexes returns the matching column index of a column position
 func ColumnIndexes(headers []string, want []string) []int {
 	indexMap := make(map[string]int)
-	wantSet := make(map[string]bool)
+	wantMap := make(map[string]bool)
 	for i, header := range headers {
 		indexMap[header] = i
 	}
-	for _, w := range want {
-		wantSet[w] = true
-	}
 	var indexes []int
-	for w := range wantSet {
-		if index, ok := indexMap[w]; ok {
+	added := make(map[int]bool)
+	for _, w := range want {
+		if wantMap[w] {
+			continue
+		}
+		wantMap[w] = true
+		if index, ok := indexMap[w]; ok && !added[index] {
 			indexes = append(indexes, index)
+			added[index] = true
 		}
 	}
 	return indexes
