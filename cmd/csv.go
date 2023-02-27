@@ -77,7 +77,9 @@ func Files(args []string) ([]string, error) {
 	var fileList []string
 
 	for _, a := range args {
-		if fi, _ := os.Stat(a); fi.IsDir() {
+		if fi, err := os.Stat(a); err != nil {
+			return nil, err
+		} else if fi.IsDir() {
 			files, err := os.ReadDir(a)
 			if err != nil {
 				return nil, err
