@@ -23,14 +23,17 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"runtime/debug"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Version: "v1.2.1",
+	Version: "v1.2.1" + VCSInfo,
 	Use:     "merger",
 	Short:   "Tool for combining files into a single file.",
 	Long: `Merger is a tool for combining CSV files with different
@@ -48,6 +51,23 @@ func Execute() {
 		os.Exit(1)
 	}
 }
+
+// VCSInfo includes the commit hash and build time information
+var VCSInfo = func() string {
+	sb := ""
+	if info, ok := debug.ReadBuildInfo(); ok {
+		for _, setting := range info.Settings {
+			if strings.HasPrefix(setting.Key, "vcs") {
+				sb += fmt.Sprintf("\n  %s: %s", setting.Key, setting.Value)
+			}
+		}
+	}
+
+	if sb == "" {
+		sb = "\nuse 'go build' for version info"
+	}
+	return sb
+}()
 
 func init() {
 	// Here you will define your flags and configuration settings.
