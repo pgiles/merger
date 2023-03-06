@@ -14,7 +14,7 @@ func TestShowHeaders(t *testing.T) {
 		want  [][]string
 	}{
 		{
-			[]string{"../cmd/fixtures/transactions.csv", "../cmd/fixtures/test_info.csv"},
+			[]string{"../cmd/fixtures/transactions.CSV", "../cmd/fixtures/test_info.csv"},
 			[][]string{
 				{"Transaction Date", "Post Date", "Category", "Amount"},
 				{"Field", "Type", "Null", "Key", "Default", "Extra"},
