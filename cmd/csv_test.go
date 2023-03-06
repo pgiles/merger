@@ -44,7 +44,7 @@ func TestFiles(t *testing.T) {
 	}{
 		{
 			[]string{"./fixtures"},
-			[]string{"test.csv", "test_info.csv", "transactions.csv"},
+			[]string{"test.csv", "test_info.csv", "transactions.CSV"},
 		},
 	}
 

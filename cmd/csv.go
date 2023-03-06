@@ -85,12 +85,12 @@ func Files(args []string) ([]string, error) {
 				return nil, err
 			}
 			for _, f := range files {
-				if strings.HasSuffix(f.Name(), ".csv") {
+				if strings.HasSuffix(strings.ToLower(f.Name()), ".csv") {
 					fileList = append(fileList, strings.Join([]string{a, f.Name()}, "/"))
 				}
 			}
 		} else {
-			if strings.HasSuffix(a, ".csv") {
+			if strings.HasSuffix(strings.ToLower(a), ".csv") {
 				fileList = append(fileList, a)
 			}
 		}
