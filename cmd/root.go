@@ -33,7 +33,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Version: "v1.2.1" + VCSInfo,
+	Version: "v1.2.3" + VCSInfo,
 	Use:     "merger",
 	Short:   "Tool for combining files into a single file.",
 	Long: `Merger is a tool for combining CSV files with different
@@ -64,7 +64,7 @@ var VCSInfo = func() string {
 	}
 
 	if sb == "" {
-		sb = "\nuse 'go build' for version info"
+		sb = "\nuse 'go build' along with 'go version -m merger' for version info"
 	}
 	return sb
 }()
