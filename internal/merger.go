@@ -33,29 +33,39 @@ func (m *Merger) CombineCSVFiles(filenames []string, cols []string, outputFilena
 
 func (m *Merger) combine(w *csv.Writer, files []string, columns []string) {
 	//first try at this will be a naive impl:
-	// 1. read in records of each input file, write columns with matching headers; load everything into memory
-	log.Debug("columns to keep", "columns", columns)
-	for _, f := range files {
-		reader := csv.NewReader(openFile(f))
-		records, _ := reader.ReadAll()
-		rows := make([][]string, len(records))
-		indexes := ColumnIndexes(records[0], columns)
-		for i := 0; i < len(records); i++ {
-			var cols []string
-			for _, col := range indexes {
-				cols = append(cols, records[i][col]) //the columns we are using in the output file
-			}
-			rows[i] = append(rows[i], cols...) //the rows for this file
-		}
-
-		err := w.WriteAll(rows)
-		if err != nil {
-			LogPanic("", err)
-		}
-		w.Flush()
-		fmt.Printf("%v <- %s\n", m.OutputFileName, f)
-	}
-}
+ func (m *Merger) combine(w *csv.Writer, files []string, columns []string) {
+ 	log.Debug("columns to keep", "columns", columns)
+ 	headerMap := make(map[string]int)
+ 	for _, f := range files {
+ 		reader := csv.NewReader(openFile(f))
+ 		records, _ := reader.ReadAll()
+ 		rows := make([][]string, len(records))
+ 		indexes := ColumnIndexes(records[0], columns)
+ 		for i, col := range indexes {
+ 			headerMap[records[0][col]] = i
+ 		}
+ 		for i := 0; i < len(records); i++ {
+ 			var cols []string
+ 			for _, col := range indexes {
+ 				cols = append(cols, records[i][col]) //the columns we are using in the output file
+ 			}
+ 			for j := 0; j < len(cols); j++ {
+ 				if j < len(rows[i]) {
+ 					rows[i][j] += cols[j]
+ 				} else {
+ 					rows[i] = append(rows[i], cols[j])
+ 				}
+ 			}
+ 		}
+ 
+ 		err := w.WriteAll(rows)
+ 		if err != nil {
+ 			LogPanic("", err)
+ 		}
+ 		w.Flush()
+ 		fmt.Printf("%v <- %s\n", m.OutputFileName, f)
+ 	}
+ }
 
 // AppendCSVFiles appends the files in the array to the output file (writer)
 func (m *Merger) AppendCSVFiles(w *csv.Writer, files []string) {
