@@ -39,13 +39,13 @@ func (m *Merger) combine(w *csv.Writer, files []string, columns []string) {
 		reader := csv.NewReader(openFile(f))
 		records, _ := reader.ReadAll()
 		indexes := ColumnIndexes(records[0], columns)
-		for i := 0; i < len(records); i++ {
-			for _, col := range indexes {
-				header := records[0][col]
-				value := records[i][col]
-				mergedColumns[header] = append(mergedColumns[header], value)
-			}
-		}
+  		for _, col := range indexes {
+  			header := records[0][col]
+  			for i := 0; i < len(records); i++ {
+  				value := records[i][col]
+  				mergedColumns[header] = append(mergedColumns[header], value)
+  			}
+  		}
 	}
 
 	// Write merged columns to the output file
@@ -141,8 +141,4 @@ func writeLine(w *csv.Writer, line []string) {
 	}
 }
 
-func copyTo(r *csv.Reader, w *csv.Writer) {
-	for line, b := readline(r); b; line, b = readline(r) {
-		writeLine(w, line)
-	}
-}
+// copyTo function is unused, removing it
