@@ -32,29 +32,36 @@ func (m *Merger) CombineCSVFiles(filenames []string, cols []string, outputFilena
 }
 
 func (m *Merger) combine(w *csv.Writer, files []string, columns []string) {
-	//first try at this will be a naive impl:
-	// 1. read in records of each input file, write columns with matching headers; load everything into memory
+	// Merge similarly named column headers to the same column
 	log.Debug("columns to keep", "columns", columns)
+	mergedColumns := make(map[string][]string)
 	for _, f := range files {
 		reader := csv.NewReader(openFile(f))
 		records, _ := reader.ReadAll()
-		rows := make([][]string, len(records))
 		indexes := ColumnIndexes(records[0], columns)
 		for i := 0; i < len(records); i++ {
-			var cols []string
 			for _, col := range indexes {
-				cols = append(cols, records[i][col]) //the columns we are using in the output file
+				header := records[0][col]
+				value := records[i][col]
+				mergedColumns[header] = append(mergedColumns[header], value)
 			}
-			rows[i] = append(rows[i], cols...) //the rows for this file
 		}
-
-		err := w.WriteAll(rows)
-		if err != nil {
-			LogPanic("", err)
-		}
-		w.Flush()
-		fmt.Printf("%v <- %s\n", m.OutputFileName, f)
 	}
+
+	// Write merged columns to the output file
+	rows := make([][]string, len(mergedColumns))
+	i := 0
+	for _, values := range mergedColumns {
+		rows[i] = values
+		i++
+	}
+
+	err := w.WriteAll(rows)
+	if err != nil {
+		LogPanic("", err)
+	}
+	w.Flush()
+	fmt.Printf("%v <- %s\n", m.OutputFileName, files)
 }
 
 // AppendCSVFiles appends the files in the array to the output file (writer)
