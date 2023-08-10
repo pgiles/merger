@@ -17,10 +17,13 @@ func init() {
 func TestCombine(t *testing.T) {
 	m := new(Merger)
 	files := []string{"../cmd/fixtures/test.csv", "../cmd/fixtures/transactions.CSV"}
-	headers := []string{"first_name", "ssn", "Transaction Date", "Category", "Amount", "Amount", "ssn"}
+	headers := []string{"first_name", "ssn", "Transaction Date", "Category", "Amount", "ssn"}
 	w := bytes.NewBufferString("")
 	m.combine(csv.NewWriter(w), files, headers)
-	//fmt.Print(w)
 
-	approvals.VerifyString(t, w.String())
+	expected := `expected output`
+	actual := w.String()
+	if actual != expected {
+		t.Errorf("TestCombine failed. Expected: %s, Actual: %s", expected, actual)
+	}
 }
