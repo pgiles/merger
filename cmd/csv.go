@@ -47,7 +47,7 @@ You can select the columns you'd like to use in the final (merged) result
 by using the interactive mode.
 `,
 
-	Example: "csv some/path/file.csv /a/file/to/append/append-me.csv\ncsv . -i",
+	Example: "csv some/path/file.csv /a/file/to/append/append-me.csv\ncsv . -i\ncsv -c config.csv July",
 	Run: func(cmd *cobra.Command, args []string) {
 		files, err := Files(args)
 		if err != nil {
@@ -59,14 +59,18 @@ by using the interactive mode.
 			headers := internal.Headers(files)
 			cmd.Println(prettyPrint(headers))
 			return
+		} else if s, _ := cmd.Flags().GetString("config"); len(s) > 1 {
+			cols := internal.LoadConfigFile(s)
+			new(internal.Merger).CombineCSVFiles(files, cols, nil)
+			return
 		} else if b, _ := cmd.Flags().GetBool("interactive"); b == true {
 			headers := internal.Headers(files)
 			cmd.Println(prettyPrint(headers))
 			selected := captureInteractiveInput()
 
 			cols := matchSelected(headers, selected)
-			// TODO have backend spit out a config.csv along with combined result
-			new(internal.Merger).CombineCSVFiles(files, cols, nil)
+			m := internal.Merger{GenerateConfig: true}
+			m.CombineCSVFiles(files, cols, nil)
 			return
 		}
 		new(internal.Merger).Merge(files, nil)
@@ -163,6 +167,5 @@ func init() {
 	// is called directly, e.g.:
 	csvCmd.Flags().BoolP("plan", "p", false, "Show the headers for each input file")
 	csvCmd.Flags().BoolP("interactive", "i", false, "Pick your columns interactively and store as config for future runs")
-	// TODO implement merge using a config file
-	csvCmd.Flags().StringP("config", "c", "", "Use a set of headers configured from a previous run")
+	csvCmd.Flags().StringP("config", "c", "", "Use a set of headers configured in a single row CSV file")
 }
