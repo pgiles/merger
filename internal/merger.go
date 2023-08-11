@@ -10,13 +10,15 @@ import (
 )
 
 const DefaultOutputFile = "merged.csv"
+const OutputConfigFileName = "cfg.csv"
 
 type Merger struct {
 	OutputFileName string
+	GenerateConfig bool
 }
 
 func (m *Merger) Merge(filenames []string, outputFilename *string) {
-	f := outputFile(m, outputFilename)
+	f := m.outputFile(outputFilename)
 	defer closeFile(f)
 
 	cw := csv.NewWriter(f)
@@ -24,7 +26,7 @@ func (m *Merger) Merge(filenames []string, outputFilename *string) {
 }
 
 func (m *Merger) CombineCSVFiles(filenames []string, cols []string, outputFilename *string) {
-	f := outputFile(m, outputFilename)
+	f := m.outputFile(outputFilename)
 	defer closeFile(f)
 
 	cw := csv.NewWriter(f)
@@ -55,6 +57,8 @@ func (m *Merger) combine(w *csv.Writer, files []string, columns []string) {
 		w.Flush()
 		fmt.Printf("%v <- %s\n", m.OutputFileName, f)
 	}
+	m.GenerateConfigFile(columns)
+
 }
 
 // AppendCSVFiles appends the files in the array to the output file (writer)
@@ -91,7 +95,26 @@ func DeleteAndCreateFile(f string) *os.File {
 	return w
 }
 
-func outputFile(m *Merger, outputFilename *string) *os.File {
+func (m *Merger) GenerateConfigFile(header []string) {
+	if !m.GenerateConfig {
+		return
+	}
+	enc := csv.NewWriter(DeleteAndCreateFile(OutputConfigFileName)) //Lazy here; client can't choose config file name
+	e := enc.Write(header)
+	if e != nil {
+		LogPanic("Unable to create config file.", e, "file", OutputConfigFileName)
+	}
+	enc.Flush()
+	fmt.Printf("generated %s\n", OutputConfigFileName)
+}
+
+func LoadConfigFile(f string) []string {
+	reader := csv.NewReader(openFile(f))
+	records, _ := reader.ReadAll()
+	return records[0]
+}
+
+func (m *Merger) outputFile(outputFilename *string) *os.File {
 	m.OutputFileName = DefaultOutputFile
 	if outputFilename != nil {
 		m.OutputFileName = *outputFilename
