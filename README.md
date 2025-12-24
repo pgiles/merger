@@ -28,6 +28,19 @@ Flags:
 Use "merger [command] --help" for more information about a command.
 ```
 
+## Negate Option
+When merging CSV files, you can specify columns whose negative values should be converted to positive values using the `--negate` or `-n` flag. This is useful when dealing with financial data where debits might be represented as negative values but you want them as positive.
+
+```bash
+# Convert negative values in the Amount column to positive
+merger csv transactions.csv -c config.csv -n Amount
+
+# Convert negative values in multiple columns
+merger csv transactions.csv -c config.csv -n Amount,Balance
+```
+
+Note: The `--negate` flag must be used with either `-c` (config) or `-i` (interactive) mode.
+
 ## Logging
 Logging output has the following configuration options.
 
