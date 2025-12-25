@@ -55,13 +55,16 @@ by using the interactive mode.
 			return
 		}
 
+		negateCols, _ := cmd.Flags().GetStringSlice("negate")
+
 		if b, _ := cmd.Flags().GetBool("plan"); b == true {
 			headers := internal.Headers(files)
 			cmd.Println(prettyPrint(headers))
 			return
 		} else if s, _ := cmd.Flags().GetString("config"); len(s) > 1 {
 			cols := internal.LoadConfigFile(s)
-			new(internal.Merger).CombineCSVFiles(files, cols, nil)
+			m := internal.Merger{NegateColumns: negateCols}
+			m.CombineCSVFiles(files, cols, nil)
 			return
 		} else if b, _ := cmd.Flags().GetBool("interactive"); b == true {
 			headers := internal.Headers(files)
@@ -69,7 +72,7 @@ by using the interactive mode.
 			selected := captureInteractiveInput()
 
 			cols := matchSelected(headers, selected)
-			m := internal.Merger{GenerateConfig: true}
+			m := internal.Merger{GenerateConfig: true, NegateColumns: negateCols}
 			m.CombineCSVFiles(files, cols, nil)
 			return
 		}
@@ -168,4 +171,5 @@ func init() {
 	csvCmd.Flags().BoolP("plan", "p", false, "Show the headers for each input file")
 	csvCmd.Flags().BoolP("interactive", "i", false, "Pick your columns interactively and store as config for future runs")
 	csvCmd.Flags().StringP("config", "c", "", "Use a set of headers configured in a single row CSV file")
+	csvCmd.Flags().StringSliceP("negate", "n", []string{}, "Column names whose negative values should be converted to positive (use with -c or -i)")
 }

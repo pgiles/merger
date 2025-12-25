@@ -7,6 +7,7 @@ import (
 	log "golang.org/x/exp/slog"
 	"io"
 	"os"
+	"strings"
 )
 
 const DefaultOutputFile = "merged.csv"
@@ -15,6 +16,7 @@ const OutputConfigFileName = "cfg.csv"
 type Merger struct {
 	OutputFileName string
 	GenerateConfig bool
+	NegateColumns  []string
 }
 
 func (m *Merger) Merge(filenames []string, outputFilename *string) {
@@ -37,15 +39,29 @@ func (m *Merger) combine(w *csv.Writer, files []string, columns []string) {
 	//first try at this will be a naive impl:
 	// 1. read in records of each input file, write columns with matching headers; load everything into memory
 	log.Debug("columns to keep", "columns", columns)
+	log.Debug("columns to negate", "negate", m.NegateColumns)
+
+	// Build a set of column names to negate for quick lookup
+	negateSet := make(map[string]bool)
+	for _, col := range m.NegateColumns {
+		negateSet[col] = true
+	}
+
 	for _, f := range files {
 		reader := csv.NewReader(openFile(f))
 		records, _ := reader.ReadAll()
 		rows := make([][]string, len(records))
 		indexes := ColumnIndexes(records[0], columns)
+
 		for i := 0; i < len(records); i++ {
 			var cols []string
 			for _, col := range indexes {
-				cols = append(cols, records[i][col]) //the columns we are using in the output file
+				value := records[i][col]
+				// Apply negation if this column is in the negate list and it's not the header row
+				if i > 0 && negateSet[records[0][col]] {
+					value = NegateValue(value)
+				}
+				cols = append(cols, value) //the columns we are using in the output file
 			}
 			rows[i] = append(rows[i], cols...) //the rows for this file
 		}
@@ -161,4 +177,17 @@ func copyTo(r *csv.Reader, w *csv.Writer) {
 	for line, b := readline(r); b; line, b = readline(r) {
 		writeLine(w, line)
 	}
+}
+
+// NegateValue converts a negative numeric string to its positive equivalent.
+// If the value starts with a minus sign, it removes the minus sign.
+// If the value is already positive or non-numeric, it returns the negated value.
+func NegateValue(value string) string {
+	trimmed := strings.TrimSpace(value)
+	if strings.HasPrefix(trimmed, "-") {
+		return strings.TrimPrefix(trimmed, "-")
+	} else {
+	    return "-" + trimmed
+	}
+	return value
 }

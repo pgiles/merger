@@ -24,3 +24,51 @@ func TestCombine(t *testing.T) {
 
 	approvals.VerifyString(t, w.String())
 }
+
+func TestNegateValue(t *testing.T) {
+	var tests = []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{"negative value", "-50.00", "50.00"},
+		{"positive value", "25.50", "25.50"},
+		{"zero", "0", "0"},
+		{"negative integer", "-100", "100"},
+		{"empty string", "", ""},
+		{"negative with whitespace", " -25.00", "25.00"},
+		{"non-numeric", "text", "text"},
+		{"negative non-numeric", "-text", "text"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NegateValue(tt.input)
+			if got != tt.want {
+				t.Errorf("NegateValue(%q) = %q, want %q", tt.input, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCombineWithNegate(t *testing.T) {
+	m := &Merger{NegateColumns: []string{"Amount"}}
+	files := []string{"../cmd/fixtures/negative_test.csv", "../cmd/fixtures/negative_test2.csv"}
+	// Use header order that previously triggered the bug (when requested columns
+	// don't match file column order, the negate lookup was incorrect)
+	headers := []string{"Date", "Debit", "Description", "Category", "Amount"}
+	w := bytes.NewBufferString("")
+	m.combine(csv.NewWriter(w), files, headers)
+
+	expected := `Date,Description,Amount
+2024-01-01,Purchase 1,50.00
+2024-01-02,Refund,25.50
+2024-01-03,Purchase 2,100.25
+Date,Debit,Category
+2024-02-01,200.00,Merch
+2024-02-02,75.25,Shopping
+`
+	if w.String() != expected {
+		t.Errorf("TestCombineWithNegate got:\n%s\nwant:\n%s", w.String(), expected)
+	}
+}
