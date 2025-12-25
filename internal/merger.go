@@ -55,10 +55,11 @@ func (m *Merger) combine(w *csv.Writer, files []string, columns []string) {
 
 		for i := 0; i < len(records); i++ {
 			var cols []string
-			for colOffset, col := range indexes {
+			for _, col := range indexes {
 				value := records[i][col]
 				// Apply negation if this column is in the negate list and it's not the header row
-				if i > 0 && negateSet[columns[colOffset]] {
+				// Use records[0][col] to get the actual column name from the file's header
+				if i > 0 && negateSet[records[0][col]] {
 					value = NegateValue(value)
 				}
 				cols = append(cols, value) //the columns we are using in the output file

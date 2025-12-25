@@ -54,17 +54,19 @@ func TestNegateValue(t *testing.T) {
 func TestCombineWithNegate(t *testing.T) {
 	m := &Merger{NegateColumns: []string{"Amount"}}
 	files := []string{"../cmd/fixtures/negative_test.csv", "../cmd/fixtures/negative_test2.csv"}
-	headers := []string{"Date", "Amount", "Description", "Category", "Debit"}
+	// Use header order that previously triggered the bug (when requested columns
+	// don't match file column order, the negate lookup was incorrect)
+	headers := []string{"Date", "Debit", "Description", "Category", "Amount"}
 	w := bytes.NewBufferString("")
 	m.combine(csv.NewWriter(w), files, headers)
 
-	expected := `Date,Amount,Description
-2024-01-01,50.00,Purchase 1
-2024-01-02,25.50,Refund
-2024-01-03,100.25,Purchase 2
-Date,Category,Debit
-2024-02-01,Merch,200.00
-2024-02-02,Shopping,75.25
+	expected := `Date,Description,Amount
+2024-01-01,Purchase 1,50.00
+2024-01-02,Refund,25.50
+2024-01-03,Purchase 2,100.25
+Date,Debit,Category
+2024-02-01,200.00,Merch
+2024-02-02,75.25,Shopping
 `
 	if w.String() != expected {
 		t.Errorf("TestCombineWithNegate got:\n%s\nwant:\n%s", w.String(), expected)
