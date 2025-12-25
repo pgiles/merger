@@ -33,7 +33,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Version: "v1.2.4" + VCSInfo,
+	Version: "v1.2.5" + VCSInfo,
 	Use:     "merger",
 	Short:   "Tool for combining files into a single file.",
 	Long: `Merger is a tool for combining CSV files with different
