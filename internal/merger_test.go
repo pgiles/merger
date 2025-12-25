@@ -32,12 +32,12 @@ func TestNegateValue(t *testing.T) {
 		want  string
 	}{
 		{"negative value", "-50.00", "50.00"},
-		{"positive value", "25.50", "25.50"},
+		{"positive value", "25.50", "-25.50"},
 		{"zero", "0", "0"},
 		{"negative integer", "-100", "100"},
 		{"empty string", "", ""},
 		{"negative with whitespace", " -25.00", "25.00"},
-		{"non-numeric", "text", "text"},
+		{"non-numeric", "text", "-text"},
 		{"negative non-numeric", "-text", "text"},
 	}
 
@@ -62,7 +62,7 @@ func TestCombineWithNegate(t *testing.T) {
 
 	expected := `Date,Description,Amount
 2024-01-01,Purchase 1,50.00
-2024-01-02,Refund,25.50
+2024-01-02,Refund,-25.50
 2024-01-03,Purchase 2,100.25
 Date,Debit,Category
 2024-02-01,200.00,Merch

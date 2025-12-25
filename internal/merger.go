@@ -184,10 +184,17 @@ func copyTo(r *csv.Reader, w *csv.Writer) {
 // If the value is already positive or non-numeric, it returns the negated value.
 func NegateValue(value string) string {
 	trimmed := strings.TrimSpace(value)
+	if trimmed == "0" {
+	    return trimmed
+	}
 	if strings.HasPrefix(trimmed, "-") {
 		return strings.TrimPrefix(trimmed, "-")
 	} else {
-	    return "-" + trimmed
+        if len(trimmed) > 0 {
+            return "-" + trimmed
+        } else {
+            return trimmed
+        }
 	}
 	return value
 }

@@ -40,7 +40,7 @@ var csvCmd = &cobra.Command{
 	Long: `Pass file paths or directories as arguments. 
 
 Each file's contents (all rows, including headers) will be appended to 
-the file passed before it resulting in a single CVS file named merged.csv
+the file passed before it resulting in a single CSV file named merged.csv
 that contains the data from all files.
 
 You can select the columns you'd like to use in the final (merged) result 
