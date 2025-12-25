@@ -58,7 +58,6 @@ func (m *Merger) combine(w *csv.Writer, files []string, columns []string) {
 			for _, col := range indexes {
 				value := records[i][col]
 				// Apply negation if this column is in the negate list and it's not the header row
-				// Use records[0][col] to get the actual column name from the file's header
 				if i > 0 && negateSet[records[0][col]] {
 					value = NegateValue(value)
 				}
@@ -182,11 +181,13 @@ func copyTo(r *csv.Reader, w *csv.Writer) {
 
 // NegateValue converts a negative numeric string to its positive equivalent.
 // If the value starts with a minus sign, it removes the minus sign.
-// If the value is already positive or non-numeric, it returns the value unchanged.
+// If the value is already positive or non-numeric, it returns the negated value.
 func NegateValue(value string) string {
 	trimmed := strings.TrimSpace(value)
 	if strings.HasPrefix(trimmed, "-") {
 		return strings.TrimPrefix(trimmed, "-")
+	} else {
+	    return "-" + trimmed
 	}
 	return value
 }
