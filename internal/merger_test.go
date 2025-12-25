@@ -53,7 +53,7 @@ func TestNegateValue(t *testing.T) {
 
 func TestCombineWithNegate(t *testing.T) {
 	m := &Merger{NegateColumns: []string{"Amount"}}
-	files := []string{"../cmd/fixtures/negative_test.csv"}
+	files := []string{"../cmd/fixtures/negative_test.csv", "../cmd/fixtures/negative_test2.csv"}
 	headers := []string{"Date", "Amount", "Description"}
 	w := bytes.NewBufferString("")
 	m.combine(csv.NewWriter(w), files, headers)
@@ -62,6 +62,9 @@ func TestCombineWithNegate(t *testing.T) {
 2024-01-01,50.00,Purchase 1
 2024-01-02,25.50,Refund
 2024-01-03,100.25,Purchase 2
+Date,Amount,Description
+2024-02-01,200.00,Purchase 3
+2024-02-02,75.25,Purchase 4
 `
 	if w.String() != expected {
 		t.Errorf("TestCombineWithNegate got:\n%s\nwant:\n%s", w.String(), expected)
