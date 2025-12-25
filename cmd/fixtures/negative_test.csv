@@ -1,4 +1,4 @@
-Date,Amount,Description
-2024-01-01,-50.00,Purchase 1
-2024-01-02,25.50,Refund
-2024-01-03,-100.25,Purchase 2
+Date,Amount,Description,Memo
+2024-01-01,-50.00,Purchase 1,
+2024-01-02,25.50,Refund,
+2024-01-03,-100.25,Purchase 2,
